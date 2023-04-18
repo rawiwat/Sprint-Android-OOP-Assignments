@@ -8,6 +8,7 @@ import android.net.ConnectivityManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
@@ -16,6 +17,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.lambdaschool.abstractionintpoly.model.Person
+import com.lambdaschool.abstractionintpoly.model.Starship
 import com.lambdaschool.abstractionintpoly.model.SwApiObject
 import com.lambdaschool.abstractionintpoly.retrofit.StarWarsAPI
 import kotlinx.android.synthetic.main.activity_item_list.*
@@ -33,8 +36,11 @@ import retrofit2.Response
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-class ItemListActivity : AppCompatActivity() {
+class ItemListActivity : AppCompatActivity(),ItemDetailFragment.DetailResponse {
 
+    //override fun provideInfoForObject(info:String){
+   //     Toast.makeText(this,"we got this info from the detail:\n$info", Toast.LENGTH_SHORT).show()
+    //}
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
@@ -85,8 +91,60 @@ class ItemListActivity : AppCompatActivity() {
     private fun getData() {
 
         // Add people
-
+        val personIds = mutableListOf(1,2,3,4,5,6)
+        personIds.shuffle()
+        personIds.forEach{
+            getPerson(it)
+        }
         // Add starships
+        val starshipIds = mutableListOf(15,25,53,45,55,10)
+        starshipIds.shuffle()
+        starshipIds.forEach{
+            getStarship(it)
+        }
+    }
+
+    fun getPerson(id:Int){
+        starWarsAPI.getPerson(id).enqueue(object :Callback<Person>{
+            override fun onResponse(call: Call<Person>, response: Response<Person>) {
+                progressBar.visibility = GONE
+                if (response.isSuccessful){
+                    val person = response.body()
+                    person?.let {
+                        it.id = id
+                        it.category = DrawableResolver.CHARACTER
+                        swApiObjects.add(person)
+                        viewAdapter?.notifyItemInserted(swApiObjects.size - 1)
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<Person>, t: Throwable) {
+                progressBar.visibility = GONE
+                Toast.makeText(this@ItemListActivity,"Failure",Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    fun getStarship(id: Int){
+        starWarsAPI.getStarShip(id).enqueue(object :Callback<Starship>{
+            override fun onResponse(call: Call<Starship>, response: Response<Starship>) {
+                progressBar.visibility = GONE
+                if (response.isSuccessful){
+                    val starship = response.body()
+                    starship?.let {
+                        it.id = id
+                        it.category = DrawableResolver.CHARACTER
+                        swApiObjects.add(starship)
+                        viewAdapter?.notifyItemChanged(swApiObjects.size - 1)
+                    }
+                }
+            }
+            override fun onFailure(call: Call<Starship>, t: Throwable) {
+                progressBar.visibility = GONE
+                Toast.makeText(this@ItemListActivity,"Failure",Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     class SimpleItemRecyclerViewAdapter(
@@ -139,8 +197,11 @@ class ItemListActivity : AppCompatActivity() {
             val swApiObject = values[position]
 
             // TODO 8: S05M02-8 convert id to string to display
-
+            holder.idView.text = "${swApiObject.id}"
+            holder.nameView.text = swApiObject.name?:""
             // TODO 9: S05M02-9 bind data to new views
+            holder.categoryView.text = swApiObject.category
+            holder.imageView.setImageDrawable(holder.imageView.context.getDrawable(DrawableResolver.getDrawableId(swApiObject.category,swApiObject.id)))
 
             with(holder.itemView) {
                 tag = swApiObject
@@ -177,6 +238,10 @@ class ItemListActivity : AppCompatActivity() {
             getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkInfo = connectivityManager.activeNetworkInfo
         return networkInfo?.isConnected == true
+    }
+
+    override fun providedInfo(info: String) {
+        Toast.makeText(this,"got info from the detail:$info",Toast.LENGTH_SHORT).show()
     }
 
     // TODO 14: Implement the Fragment interface

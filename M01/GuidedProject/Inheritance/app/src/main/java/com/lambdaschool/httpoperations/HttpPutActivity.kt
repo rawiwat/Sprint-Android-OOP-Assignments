@@ -12,14 +12,12 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class HttpPutActivity : AppCompatActivity() {
-
-    lateinit var jsonPlaceHolderApi: JsonPlaceHolderApi
+class HttpPutActivity : HttpActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_http_get)
-        jsonPlaceHolderApi = JsonPlaceHolderApi.Factory.create()
+
         title = "Put Request: Update existing Employee Steve"
         updateEmployee()
     }
@@ -28,8 +26,7 @@ class HttpPutActivity : AppCompatActivity() {
         val employee = Employee(age = 25, id = 1, name = "Steve", title = "Principal Engineer")
         jsonPlaceHolderApi.updateEmployee(employee).enqueue(object : Callback<Employee> {
             override fun onFailure(call: Call<Employee>, throwable: Throwable) {
-                progressBar.visibility = View.GONE
-                result.text = throwable.toString()
+                this@HttpPutActivity.onFailure(throwable)
             }
 
             override fun onResponse(call: Call<Employee>, response: Response<Employee>) {

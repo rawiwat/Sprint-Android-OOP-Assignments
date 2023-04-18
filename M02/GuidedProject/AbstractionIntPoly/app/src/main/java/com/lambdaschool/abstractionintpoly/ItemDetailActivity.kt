@@ -3,6 +3,7 @@ package com.lambdaschool.abstractionintpoly
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import com.lambdaschool.abstractionintpoly.model.SwApiObject
@@ -14,7 +15,11 @@ import kotlinx.android.synthetic.main.activity_item_detail.*
  * item details are presented side-by-side with a list of items
  * in a [ItemListActivity].
  */
-class ItemDetailActivity : AppCompatActivity() {
+class ItemDetailActivity : AppCompatActivity(),ItemDetailFragment.DetailResponse {
+
+    override fun providedInfo(info: String) {
+        Toast.makeText(this,"got info from the detail:$info", Toast.LENGTH_SHORT).show()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +31,7 @@ class ItemDetailActivity : AppCompatActivity() {
 
         fab.setOnClickListener { view ->
             // TODO 12: Show a Snackbar with object info
+            Snackbar.make(view,swObject.info(),Snackbar.LENGTH_SHORT).setAction("Action",null).show()
         }
 
         // Show the Up button in the action bar.
